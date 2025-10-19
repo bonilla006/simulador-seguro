@@ -1,11 +1,33 @@
+/*
+referencias:
+*/
 #include <iostream>
 using namespace std;
 
 const int CODIGO = 89491;
 
 //funcion para validar el input
-bool validacion(input){
-    
+bool validacion(int input){
+    bool error = false;
+    int codigo = 0;
+
+    if(!isdigit(input)){
+        error = true; 
+        codigo = 1;
+    }
+
+    if(error){
+        cout<<"--- ERROR ---"<<endl;
+        switch(codigo){
+            case 1:
+                cout<<"ingreso un valor no numerico."<<endl;
+                return false;
+                break;
+            default:
+                cout<<"Desconociodo..."<<endl;
+                return false;
+        } 
+    }
     return true;
 }
 
@@ -23,6 +45,7 @@ bool validar_codigo(int codigo_ingresado){
 int main(){
 
     int codigo_ingresado = 0;
+    bool input_valido = false;
     bool acceso = false;
 
     do{
@@ -30,7 +53,7 @@ int main(){
         cin>>codigo_ingresado;
 
         input_valido = validacion(codigo_ingresado);
-        if(!input_valido){ return -1 }
+        if(!input_valido){ return -1; }
 
         acceso = validar_codigo(codigo_ingresado);
     }while(!acceso);
