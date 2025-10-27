@@ -2,3 +2,7 @@
 **/programas&practicas/**
 **/textos/**
 cerradura_inteligente
+#ignorar cosas del virtual env
+webapp 
+#ignorar pycache
+__pycache__
