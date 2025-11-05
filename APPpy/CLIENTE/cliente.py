@@ -1,10 +1,6 @@
-from flask import Flask
-from flask_restful import Api, Resource, reqparse
+from flask import Flask, render_template
 
 app = Flask(__name__)
-api = Api(app)
-
-#ENDPOINTS: Mobile(cliente)
 @app.route('/cliente/inicio/')
 def InicioSeccion():
     #Post
@@ -15,3 +11,7 @@ def InicioSeccion():
 def crear_CodigoMaestro():
     codigo_maestro = "6416245"
     pass
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8003, debug=True)
