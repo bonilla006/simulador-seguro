@@ -1,0 +1,292 @@
+body{
+  background-color: #374151 !important;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Estilos base para todos los dispositivos */
+.contenedor-principal{
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+/*--------------------------------------------------------------------*/
+
+
+/* From Uiverse.io by alexruix */ 
+/*Estilo para el formulario/input/botones*/
+.form-box {
+  max-width: 90%;
+  background: #f1f7fe;
+  overflow: hidden;
+  border-radius: 16px;
+  color: #010101;
+  margin: 10% auto;
+}
+
+.form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px 24px;
+  gap: 16px;
+  text-align: center;
+}
+
+/*Form text*/
+.title {
+  font-weight: bold;
+  font-size: 1.6rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+}
+
+/*Inputs box*/
+.form-container {
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #fff;
+  margin: 1rem 0 .5rem;
+  width: 100%;
+}
+
+.input {
+  background: none;
+  border: 0;
+  outline: 0;
+  height: 40px;
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  font-size: .9rem;
+  padding: 8px 15px;
+  box-sizing: border-box;
+}
+.form-section {
+  padding: 16px;
+  font-size: .85rem;
+  background-color: #e0ecfb;
+  box-shadow: rgb(0 0 0 / 8%) 0 -1px;
+}
+
+.form-section a {
+  font-weight: bold;
+  color: #0066ff;
+  transition: color .3s ease;
+}
+
+.form-section a:hover {
+  color: #005ce6;
+  text-decoration: underline;
+}
+
+/*Button*/
+.form button {
+  background-color: #0066ff;
+  color: #fff;
+  border: 0;
+  border-radius: 24px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color .3s ease;
+}
+
+.form button:hover {
+  background-color: #005ce6;
+}
+/*--------------------------------------------------------------------*/
+
+
+/* Estilos para el teléfono personalizado */
+.telefono-simple {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  background: none;
+  height: 40px;
+  position: relative;
+}
+
+.country-selector {
+  position: relative;
+  height: 100%;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.selected-country {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  height: 100%;
+  font-size: .9rem;
+  color: #374151;
+  border-right: 1px solid #eee;
+  cursor: pointer;
+  background: none;
+  width: 100%;
+}
+
+.country-flag {
+  margin-right: 4px;
+}
+
+.country-code {
+  font-weight: 500;
+}
+
+.selected-country .arrow {
+  font-size: 0.7rem;
+  margin-left: 4px;
+  color: #666;
+}
+
+.country-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 180px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+
+.country-dropdown.active {
+  display: block;
+}
+
+.country-option {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.country-option:last-child {
+  border-bottom: none;
+}
+
+.country-option:hover {
+  background-color: #f1f7fe;
+}
+
+.option-flag {
+  margin-right: 8px;
+  width: 20px;
+}
+
+.option-text {
+  flex: 1;
+}
+
+.input-simple {
+  background: none;
+  border: 0;
+  outline: 0;
+  height: 40px;
+  flex: 1;
+  font-size: .9rem;
+  padding: 8px 35px;
+  min-width: 0;
+}
+
+/* Ocultar el campo original */
+#wtf_telefono {
+  display: none;
+}
+/*--------------------------------------------------------------------*/
+
+/*Estilos para el menu de opciones*/
+.contenedor-opciones {
+  position: fixed;
+  border-radius: 30px;
+  height: 60px;
+  bottom: 30px;
+  left: 15px;
+  right: 15px;
+  background-color: white;
+}
+
+.opciones ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: space-around;
+}
+
+.opciones li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.icon {
+  width: 45px;
+  height: 45px;
+}
+.opciones li:hover .icon {
+  transform: translateY(-3px);
+  transition: all 0.3s ease;  
+}
+/*--------------------------------------------------------------------*/
+
+/*Estilos para el icono de mas*/
+.contenedor-masdispositivo{
+  display: flex;
+  justify-content: flex-end;
+}
+.icon-mas{
+  width: 70px;
+  height: 70px;
+  margin-top: 15px;
+  margin-right: 15px;
+}
+.icon-mas:hover{
+  transform: translateY(-3px);
+  transition: all 0.3s ease;  
+}
+/*--------------------------------------------------------------------*/
+/* Estilos para desktop */
+@media (min-width: 933px) {
+  body {
+    background-color: #7af0b5 !important;
+  }
+
+  .form-box {
+    background-color: #fcfcfc;
+    margin: 5% auto;
+    max-width: 400px;
+  }
+
+  .contenedor-principal {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .icon-mas{
+    width: 70px;
+    height: 70px;
+    margin-top: 15px;
+    margin-right: -45px;
+  }
+}
+/*--------------------------------------------------------------------*/

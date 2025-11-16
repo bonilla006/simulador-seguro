@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="contenedor-masdispositivo">
+        <a><img class="icon-mas" src="{{ url_for('static', filename='image/icons8-plus-128.png') }}"></a>
+    </div>
+    
+    <div class="contenedor-contenido">
+        {% if context %}
+            {% for dispositivo in context %}
+                <table>
+                    <tr>
+                        <td>
+                            {{dispositivo}}
+                        </td>
+                    </tr>
+                </table>
+            {% endfor %}
+        {% else %}
+            <h3>No tiene dispositivos en esta cuenta</h3>
+        {% endif %}
+    </div>
+
+    <div class="contenedor-opciones">
+        <div class="opciones">
+            <ul>
+                <li>
+                    <a><img class="icon" src="{{ url_for('static', filename='image/icons8-cloud-sharing-66.png') }}"></a>
+                </li>
+                <li>
+                    <a href="#"><img class="icon" src="{{ url_for('static', filename='image/register.svg') }}"></a>
+                </li>
+                <li>
+                    <a><img class="icon" src="{{ url_for('static', filename='image/settings.svg') }}"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+{% endblock content %}
