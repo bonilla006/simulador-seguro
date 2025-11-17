@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import FlaskForm, CSRFProtect
+from flask_wtf.csrf import generate_csrf
 from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, Length, Email, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 from models import *
-from sqlalchemy.orm import joinedload
 import phonenumbers
 
 #CORE 
@@ -104,17 +104,66 @@ def Inicio():
 @login_required
 def Panel_Control():
     # conseguir los dispositivos del usuario
-    info_IoT = iot_usuario.query.filter_by(usuario_id=current_user.id).all()
+    try:
+        info_IoT = iot_usuario.query.filter_by(usuario_id=current_user.id).all()
+    except Exception as err:
+        print("Error general:", err)
+
+    mycsrf=generate_csrf()
+
     if info_IoT:
         context = [{
-            'nombre':info.alias if info.alias else info.iot.name,
-            'encendido':info.iot.encendido,
-            'estado_dispositivo':info.iot.estado.value
+            'id':info.id,
+            'nombre':info.alias if info.alias else info.name,
+            # 'encendido':info.encendido,
+            'estado':info.estado.value,
+            'carga':info.bateria,
         } for info in info_IoT]
     else:
         context= []
         
-    return render_template('panel_principal.html', context=context)
+    return render_template('panel_principal.html', context=context, csrf=mycsrf)
+
+@app.route('/panel-principal/lock/<int:rel_id>/', methods=['POST'])
+@login_required
+def Bloquear_Dispositivo(rel_id):
+    if request.method == "POST":
+        #conseguir el id del record iot-usuario
+        try:
+            dispositivo = iot_usuario.query.get(rel_id) 
+        except Exception as err:
+            print("Error general:", err)
+
+        #actualizar el estado del dispositivo de desbloqueado a bloqueado
+        dispositivo.estado = "Bloqueado"
+        db.session.commit()
+
+        #volver al panel principal
+        return redirect(url_for('Panel_Control'))
+    else:
+        print("metodo incorrecto")
+        return redirect(url_for('Panel_Control'))
+    
+@app.route('/panel-principal/unlock/<int:rel_id>/', methods=['POST'])
+@login_required
+def Desbloquear_Dispositivo(rel_id):
+    if request.method == "POST":
+        #conseguir el id del record iot-usuario
+        try:
+            dispositivo = iot_usuario.query.get(rel_id) 
+        except Exception as err:
+            print("Error general:", err)
+
+        #actualizar el estado del dispositivo de bloqueado a desbloqueado
+        dispositivo.estado = "Desbloqueado"
+        db.session.commit()
+        
+        #volver al panel principal
+        return redirect(url_for('Panel_Control'))
+    else:
+        print("metodo incorrecto")
+        return redirect(url_for('Panel_Control'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)

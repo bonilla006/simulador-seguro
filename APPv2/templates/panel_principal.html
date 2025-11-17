@@ -2,22 +2,52 @@
 
 {% block content %}
     <div class="contenedor-masdispositivo">
-        <a><img class="icon-mas" src="{{ url_for('static', filename='image/icons8-plus-128.png') }}"></a>
+        <button class="icon-mas"> 
+           <img src="{{ url_for('static', filename='image/icons8-plus-128.png') }}" alt="Agregar Dispositivo">
+        </button>
     </div>
     
     <div class="contenedor-contenido">
         {% if context %}
             {% for dispositivo in context %}
-                <table>
-                    <tr>
-                        <td>
-                            {{dispositivo}}
-                        </td>
-                    </tr>
-                </table>
+                <div class="dispositivos">
+                    <ul>
+                        <li>
+                            <a href="#">{{dispositivo.nombre}} <img class="icon-edit" src="{{ url_for('static', filename='image/icons8-edit-50.png') }}"></a>
+                        </li>
+                        <li>
+                            {% if dispositivo.estado == "Desbloqueado" %}
+                                <form action="{{ url_for('Bloquear_Dispositivo', rel_id=dispositivo.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{csrf}}">
+                                    <button type="submit">
+                                        <img class="icon" src="{{ url_for('static', filename='image/icons8-unlock-50.png') }}" alt="Bloquear Dispositivo">
+                                    </button>
+                                </form>
+
+                            {% elif dispositivo.estado == "Bloqueado" %}
+                                <form action="{{ url_for('Desbloquear_Dispositivo', rel_id=dispositivo.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{csrf}}">
+                                    <button type="submit">
+                                        <img class="icon" src="{{ url_for('static', filename='image/icons8-lock-50.png') }}" alt="Desbloquear Dispositivo">
+                                    </button>
+                                </form>
+
+                            {% else %}
+                                <a>
+                                    <img class="icon" alt="Error Fatal" src="{{ url_for('static', filename='image/icons8-error-50.png') }}">
+                                </a>
+                            {% endif %}
+                        </li>
+                        <li>
+                            {{dispositivo.carga}}
+                        </li>
+                    </ul>
+                </div>
             {% endfor %}
         {% else %}
-            <h3>No tiene dispositivos en esta cuenta</h3>
+            <div class="dispositivos" style="justify-content:center;">
+                <h3>No tiene dispositivos en esta cuenta</h3>
+            </div>
         {% endif %}
     </div>
 
@@ -25,13 +55,13 @@
         <div class="opciones">
             <ul>
                 <li>
-                    <a><img class="icon" src="{{ url_for('static', filename='image/icons8-cloud-sharing-66.png') }}"></a>
+                    <a><img class="icon" src="{{ url_for('static', filename='image/icons8-cloud-sharing-66.png') }}" alt="Mis Dispositivos"></a>
                 </li>
                 <li>
-                    <a href="#"><img class="icon" src="{{ url_for('static', filename='image/register.svg') }}"></a>
+                    <a href="#"><img class="icon" src="{{ url_for('static', filename='image/icons8-report-50.png') }}"></a>
                 </li>
                 <li>
-                    <a><img class="icon" src="{{ url_for('static', filename='image/settings.svg') }}"></a>
+                    <a><img class="icon" src="{{ url_for('static', filename='image/icons8-setting-50.png') }}"></a>
                 </li>
             </ul>
         </div>

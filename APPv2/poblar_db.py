@@ -8,26 +8,18 @@ def poblar_tablas():
             Dispositivos(
                 id_modelo="BFUA-6044",
                 name="GoodLock", 
-                encendido=True,
-                estado="Desbloqueado"
             ),
             Dispositivos(
                 id_modelo="HKFA-3040", 
                 name="SeC2000",
-                encendido=True,
-                estado="Desbloqueado"
             ),
             Dispositivos(
                 id_modelo="GEWF-6738",
                 name="DobermanLock",
-                encendido=False,
-                estado="Bloqueado"
             ),
             Dispositivos(
                 id_modelo="AAAA-0000",
                 name="SmartLock2001",
-                encendido=True,
-                estado="Desbloqueado"
             )
         ]
         
@@ -77,7 +69,9 @@ def poblar_tablas():
             iot_usuario(
                 iot_id=dispositivo1.id, 
                 usuario_id=usuario1.id, 
-                codigo="48248648", 
+                codigo="48248648",
+                encendido=True,
+                estado="Bloqueado", 
                 alias="Puerta Pricipal",
                 bateria=89
             ),
@@ -85,13 +79,17 @@ def poblar_tablas():
                 iot_id=dispositivo2.id, 
                 usuario_id=usuario1.id, 
                 codigo="58948744", 
-                alias="patio",
+                encendido=True,
+                estado="Desbloqueado",
+                alias="Patio",
                 bateria=90  
             ),
             iot_usuario(
                 iot_id=dispositivo1.id, 
                 usuario_id=usuario2.id, 
-                codigo="26284686", 
+                codigo="26284686",
+                encendido=True,
+                estado="Bloqueado", 
                 alias="Oficina de Jorge",
                 bateria=100
             ),

@@ -5,18 +5,10 @@ from sqlalchemy_utils import ChoiceType
 db = SQLAlchemy()
 
 #guarda la informacion de los dispositivos IoT
-
-ESTADO_OPERACIONAL = [
-    ('Desbloqueado', 'Desbloqueado'),
-    ('Bloqueado', 'Bloqueado'),
-    ('Err', 'Error')
-]
 class Dispositivos(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_modelo = db.Column(db.String(length=50), unique=True)
     name = db.Column(db.String(length=150))
-    encendido = db.Column(db.Boolean, default=False) 
-    estado = db.Column(ChoiceType(ESTADO_OPERACIONAL))
 
     def __repr__(self):
         return f"IoT:{self.name}-{self.id_modelo}"
@@ -35,11 +27,18 @@ class Usuarios(db.Model, UserMixin):
         return f"U: {self.email}"
 
 #modelo para unir dispositivos y usuarios   
+ESTADO_OPERACIONAL = [
+    ('Desbloqueado', 'Desbloqueado'),
+    ('Bloqueado', 'Bloqueado'),
+    ('Err', 'Error')
+]
 class iot_usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     iot_id = db.Column(db.Integer, db.ForeignKey("dispositivos.id"))
     usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"))
     codigo = db.Column(db.String(length=150))
+    encendido = db.Column(db.Boolean, default=False) 
+    estado = db.Column(ChoiceType(ESTADO_OPERACIONAL))
     alias = db.Column(db.String(150))
     bateria = db.Column(db.Integer)
 
