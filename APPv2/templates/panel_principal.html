@@ -2,9 +2,9 @@
 
 {% block content %}
     <div class="contenedor-masdispositivo">
-        <button type="submit" class="icon-mas" onclick="open_NuevoDispositivo()"> 
+        <a href="{{ url_for('Nuevo_Dispositivo')}}">
            <img width="85px" height="85px" src="{{ url_for('static', filename='image/icons8-plus-128.png') }}" alt="Agregar Dispositivo">
-        </button>
+        </a>
     </div>
     
     <div class="contenedor-contenido">

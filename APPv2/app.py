@@ -206,11 +206,11 @@ def Nuevo_Dispositivo():
             try:    
                 u_id = Usuarios.query.get(current_user.id)
                 d_id = Dispositivos.query.filter_by(id_modelo=form.id_modelo.data).first()
+                relacion = iot_usuario.query.filter_by(usuario_id=u_id.id, iot_id=d_id.id).all()
             except Exception as err:
                 print("Error al buscar data de usuario o dispositivo:", err)
+                return redirect(url_for('Nuevo_Dispositivo'))
             
-            print(":", u_id, d_id)
-            relacion = iot_usuario.query.filter_by(usuario_id=u_id.id, iot_id=d_id.id).all()
             if not relacion:
                 nuevo_dispositivo = iot_usuario(
                     iot_id=d_id.id, 
@@ -229,6 +229,7 @@ def Nuevo_Dispositivo():
                 return redirect(url_for('Nuevo_Dispositivo'))
         else:
             print("error en Nuevo_Dispositivo:",form.errors)
+            return redirect(url_for('Nuevo_Dispositivo'))
             
     return render_template('nuevo_dispositivo.html', form=form)
 
