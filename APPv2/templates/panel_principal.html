@@ -2,8 +2,8 @@
 
 {% block content %}
     <div class="contenedor-masdispositivo">
-        <button class="icon-mas"> 
-           <img src="{{ url_for('static', filename='image/icons8-plus-128.png') }}" alt="Agregar Dispositivo">
+        <button type="submit" class="icon-mas" onclick="open_NuevoDispositivo()"> 
+           <img width="85px" height="85px" src="{{ url_for('static', filename='image/icons8-plus-128.png') }}" alt="Agregar Dispositivo">
         </button>
     </div>
     
@@ -13,7 +13,9 @@
                 <div class="dispositivos">
                     <ul>
                         <li>
-                            <a href="#">{{dispositivo.nombre}} <img class="icon-edit" src="{{ url_for('static', filename='image/icons8-edit-50.png') }}"></a>
+                            <a href="#">
+                                {{dispositivo.nombre}} <img width="20px" height="20px" src="{{ url_for('static', filename='image/icons8-edit-50.png') }}">
+                            </a>
                         </li>
                         <li>
                             {% if dispositivo.estado == "Desbloqueado" %}
@@ -66,4 +68,15 @@
             </ul>
         </div>
     </div>
+    <div id="nuevo-dispositivo" class="modal">
+        <div class="modal-contenido">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <!--h2 id="mensaje-confirmacion"></h2-->
+            ingresar la informacion de <a href="{{ url_for('Nuevo_Dispositivo') }}">forma manual</a>
+        <div>
+    <div> 
+    <script>
+        function open_NuevoDispositivo(){ document.getElementById('nuevo-dispositivo').style.display = 'block'; }
+        function closeModal(){ document.getElementById('nuevo-dispositivo').style.display = 'none'; }
+    </script>
 {% endblock content %}

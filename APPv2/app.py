@@ -28,8 +28,8 @@ class ValidarUsuario(FlaskForm):
 class CrearUsuario(FlaskForm):
     email = StringField(label="Email", validators=[Email(), InputRequired(), Length(10, 50)])
     nombre = StringField(label="Nombre")
-    apellido =StringField(label="Apellido")
-    telefono =StringField(label="Telefono")
+    apellido = StringField(label="Apellido")
+    telefono = StringField(label="Telefono")
     passw = PasswordField(label="Contraseña")
     
     def validate_telefono(self, telefono):
@@ -38,8 +38,40 @@ class CrearUsuario(FlaskForm):
             if not phonenumbers.is_valid_number(tel):
                 raise ValueError()
         except (phonenumbers.phonenumberutil.NumberParseException, ValueError):
-            raise ValidationError('Invalid phone number')
+            raise ValidationError('Numero de telefono invalido')
                   
+class NuevoDispositivo(FlaskForm):
+    id_modelo = StringField(label="Modelo")
+    codigo = StringField(label="Codigo_Master")
+    nombre = StringField(label="Nombre")
+
+    def validate_id_modelo(self, id_modelo):
+        #verificar que tenga -
+        mitad = len(id_modelo.data)//2
+        if id_modelo.data[mitad] != "-":
+            raise ValidationError('El formato del id es: AAAA-1234')
+        
+        #separa el texto y lo numerico
+        texto, numero = id_modelo.data.split("-")
+
+        if not texto.isupper():
+            raise ValidationError('Deben ser mayusculas')
+        
+        if len(texto) != 4 or len(numero) != 4:
+            raise ValidationError('El id debe ser de 8 carcateres')
+    
+        if not texto.isalpha():
+            raise ValidationError('los primeros 4 caracteres deben ser letras')
+        
+        if not numero.isdigit():
+            raise ValidationError('los ultimos 4 caracteres deben ser numeros')
+    
+    def validate_codigo(self, codigo):
+        if not codigo.data.isdigit():
+            raise ValidationError('El codigo debe ser numerico')
+        
+        if len(codigo.data) < 4:
+            raise ValidationError('Minimo 5 digitos')
 
 #ENDPOINTS
 @login_manager.user_loader
@@ -107,7 +139,7 @@ def Panel_Control():
     try:
         info_IoT = iot_usuario.query.filter_by(usuario_id=current_user.id).all()
     except Exception as err:
-        print("Error general:", err)
+        print("Error en Panel_Control:", err)
 
     mycsrf=generate_csrf()
 
@@ -132,7 +164,7 @@ def Bloquear_Dispositivo(rel_id):
         try:
             dispositivo = iot_usuario.query.get(rel_id) 
         except Exception as err:
-            print("Error general:", err)
+            print("Error en Bloquear_Dispositivo:", err)
 
         #actualizar el estado del dispositivo de desbloqueado a bloqueado
         dispositivo.estado = "Bloqueado"
@@ -152,7 +184,7 @@ def Desbloquear_Dispositivo(rel_id):
         try:
             dispositivo = iot_usuario.query.get(rel_id) 
         except Exception as err:
-            print("Error general:", err)
+            print("Error en Desbloquear_Dispositivo:", err)
 
         #actualizar el estado del dispositivo de bloqueado a desbloqueado
         dispositivo.estado = "Desbloqueado"
@@ -164,6 +196,41 @@ def Desbloquear_Dispositivo(rel_id):
         print("metodo incorrecto")
         return redirect(url_for('Panel_Control'))
 
+@app.route('/panel-principal/nuevo-dispositivo/', methods=['GET', 'POST'])
+def Nuevo_Dispositivo():
+    form = NuevoDispositivo()
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+            #conseguir al usuario y el dispositivo
+            try:    
+                u_id = Usuarios.query.get(current_user.id)
+                d_id = Dispositivos.query.filter_by(id_modelo=form.id_modelo.data).first()
+            except Exception as err:
+                print("Error al buscar data de usuario o dispositivo:", err)
+            
+            print(":", u_id, d_id)
+            relacion = iot_usuario.query.filter_by(usuario_id=u_id.id, iot_id=d_id.id).all()
+            if not relacion:
+                nuevo_dispositivo = iot_usuario(
+                    iot_id=d_id.id, 
+                    usuario_id=u_id.id, 
+                    codigo=form.codigo.data,
+                    encendido=True,
+                    estado="Desbloqueado", 
+                    alias=form.nombre.data,
+                    bateria=100
+                )
+                db.session.add(nuevo_dispositivo)
+                db.session.commit()
+                return redirect(url_for('Panel_Control'))
+            else:
+                print("ya tiene conectado este dispositivo")
+                return redirect(url_for('Nuevo_Dispositivo'))
+        else:
+            print("error en Nuevo_Dispositivo:",form.errors)
+            
+    return render_template('nuevo_dispositivo.html', form=form)
 
 if __name__ == "__main__":
     app.run(debug=True)

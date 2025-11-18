@@ -64,7 +64,58 @@ body{
   font-size: .9rem;
   padding: 8px 15px;
   box-sizing: border-box;
+  transition: border-color 0.3s ease;
 }
+
+/* Estilo para inputs con error */
+.input.error {
+  border-bottom: 1px solid #ff4444;
+}
+
+/* Contenedor para cada campo con su error */
+.campo-grupo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+}
+
+.campo-grupo:last-of-type {
+  border-bottom: none;
+}
+
+/* Estilos para mensajes de error */
+.errores {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0; /* No se encoge */
+}
+
+.error {
+  color: #ff4444;
+  font-size: 0.7rem; /* Un poco más pequeño en mobile */
+  font-weight: 500;
+  white-space: nowrap; /* Evita que el texto se rompa */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.error::before {
+  content: "⚠";
+  font-size: 0.65rem;
+}
+
+/* Estilo para campos con error */
+.campo-grupo.error {
+  border-bottom: 1px solid #ff4444;
+}
+
+.input.error {
+  color: #ff4444;
+}
+
 .form-section {
   padding: 16px;
   font-size: .85rem;
@@ -76,11 +127,6 @@ body{
   font-weight: bold;
   color: #0066ff;
   transition: color .3s ease;
-}
-
-.form-section a:hover {
-  color: #005ce6;
-  text-decoration: underline;
 }
 
 /*Button*/
@@ -99,6 +145,7 @@ body{
 .form button:hover {
   background-color: #005ce6;
 }
+
 /*--------------------------------------------------------------------*/
 
 
@@ -216,7 +263,7 @@ body{
   display: flex;
   flex-direction: column;
   gap: 30px;
-  margin:50px 10px;
+  margin:15px 10px;
 }
 /*--------------------------------------------------------------------*/
 
@@ -274,10 +321,6 @@ body{
   cursor: pointer;
   text-decoration: none;
 }
-.icon-edit {
-  width: 20px;
-  height: 20px;
-}
 /*--------------------------------------------------------------------*/
 
 
@@ -325,8 +368,8 @@ body{
   justify-content: flex-end;
 }
 .icon-mas{
-  width: 70px;
-  height: 70px;
+  background-color: transparent;
+  border-color: transparent;
   margin-top: 15px;
   margin-right: 15px;
   cursor: pointer;
@@ -336,6 +379,36 @@ body{
   transition: all 0.3s ease;  
 }
 /*--------------------------------------------------------------------*/
+
+/*Estilos para el modal*/
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1; 
+  left: 0;
+  top: 0;
+  width: 100%; 
+  height: 100%; 
+  overflow: auto; 
+  background-color: rgb(0,0,0); 
+  background-color: rgba(0,0,0,0.4); 
+}
+.modal-contenido {
+  background-color: #fefefe;
+  margin-left: 30%; 
+  margin-top: 15%;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 40%; 
+}
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+/*--------------------------------------------------------------------*/
+
 /* Estilos para desktop */
 @media (min-width: 933px) {
   body {
