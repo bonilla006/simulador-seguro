@@ -1,7 +1,9 @@
+import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import FlaskForm, CSRFProtect
 from flask_wtf.csrf import generate_csrf
+from flask_mqtt import Mqtt
 from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, Length, Email, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,17 +11,34 @@ from config import Config
 from models import *
 import phonenumbers
 
-#CORE 
+###########################################################################################################
+############################################CORE###########################################################
+###########################################################################################################
 app = Flask(__name__)
 #cargar configuraciones
 app.config.from_object(Config)
 # Inicializar y crear la base de datos
 crear_bd(app)
+#para autenticacion con werkzeug
 login_manager = LoginManager(app)
-
 #para formularios
 csrf = CSRFProtect(app)
-#FORMULARIOS
+#MQTT
+asunto = "/smartlock/mqtt"
+cliente_mqtt = Mqtt(app)
+# Verificar configuración MQTT cargada
+print("=== CONFIGURACIÓN MQTT ===")
+print(f"MQTT_BROKER_URL: {app.config.get('MQTT_BROKER_URL')}")
+print(f"MQTT_BROKER_PORT: {app.config.get('MQTT_BROKER_PORT')}")
+print(f"MQTT_KEEPALIVE: {app.config.get('MQTT_KEEPALIVE')}")
+print(f"MQTT connected: {cliente_mqtt.connected}")
+###########################################################################################################
+############################################CORE###########################################################
+###########################################################################################################
+
+###########################################################################################################
+############################################FORMULARIOS####################################################
+###########################################################################################################
 #Inicio de seccion
 class ValidarUsuario(FlaskForm):
     email = StringField(label="Email", render_kw={"placeholder":"Ingrese su correo electronico"},validators=[Email(), InputRequired(), Length(10, 50)])
@@ -72,8 +91,13 @@ class NuevoDispositivo(FlaskForm):
         
         if len(codigo.data) < 4:
             raise ValidationError('Minimo 5 digitos')
+###########################################################################################################
+############################################FORMULARIOS####################################################
+###########################################################################################################
 
-#ENDPOINTS
+###########################################################################################################
+############################################ENDPOINTS######################################################
+###########################################################################################################
 @login_manager.user_loader
 def load_user(id_usuario):
     return Usuarios.query.get(id_usuario)
@@ -232,6 +256,52 @@ def Nuevo_Dispositivo():
             return redirect(url_for('Nuevo_Dispositivo'))
             
     return render_template('nuevo_dispositivo.html', form=form)
+###########################################################################################################
+############################################ENDPOINTS######################################################
+###########################################################################################################
+
+###########################################################################################################
+############################################MANEJADOR MQTT#################################################
+###########################################################################################################
+#Se encarga de monitorear si hubo un problema al realizar una conexion
+@cliente_mqtt.on_connect()
+def manejador_conexion(client, userdata, flags, rc):
+    try:
+        print(f"=== EVENTO ON_CONNECT ===")
+        if rc == 0:
+            print("Conexión MQTT exitosa al broker")
+            # Intentar suscribirse
+            result = cliente_mqtt.subscribe(asunto)
+            print(f"Intento de suscripción a '{asunto}': {result}")
+
+        else:
+            print(f"Error de conexión MQTT: {rc}")
+            
+    except Exception as err:
+        print("Error fatal en conexión MQTT:", err)
+
+
+@cliente_mqtt.on_message()
+def manejador_mensajes_mqtt(client, userdata, message):
+    try:
+        print(f"=== EVENTO ON_MESSAGE ===")
+        print(f" Topic: {message.topic}")
+        print(f" Payload: {message.payload.decode()}")
+        
+    except Exception as err:
+        print(f"Error en manejador_mensajes_mqtt: {err}")
+
+@app.route('/demo-mqtt/', methods=['POST'])
+@csrf.exempt
+def Demo_Mqtt():
+    request_data = request.get_json()
+    publish_result = cliente_mqtt.publish(request_data['topic'], request_data['msg'])
+    return jsonify({'code': publish_result[0]})
+
+
+###########################################################################################################
+############################################MANEJADOR MQTT#################################################
+###########################################################################################################
 
 if __name__ == "__main__":
     app.run(debug=True)
