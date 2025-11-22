@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}    
+    <div class="contenedor-contenido">
+        <div class="opciones-logs">
+            Acceso
+        </div>
+        <div class="opciones-logs">
+            Uso
+        </div>
+        <div class="opciones-logs">
+            Riesgos
+        </div>
+    </div>
+
+    <div class="contenedor-opciones">
+        <div class="opciones">
+            <ul>
+                <li>
+                    <a href="{{ url_for('Panel_Control') }}"><img class="icon" src="{{ url_for('static', filename='image/icons8-cloud-sharing-66.png') }}" alt="Mis Dispositivos"></a>
+                </li>
+                <li>
+                    <a href="#"><img class="icon" src="{{ url_for('static', filename='image/icons8-report-50.png') }}"></a>
+                </li>
+                <li>
+                    <a><img class="icon" src="{{ url_for('static', filename='image/icons8-setting-50.png') }}"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        console.log("logs");
+    </script>
+{% endblock content %}

@@ -409,6 +409,16 @@ body{
 }
 /*--------------------------------------------------------------------*/
 
+/*Para los logs*/
+.opciones-logs{
+  background-color: #fff;
+  border-radius: 25px;
+  display: flex;
+  margin-top: 25%;
+  padding: 15px;
+}
+/*--------------------------------------------------------------------*/
+
 /* Estilos para desktop */
 @media (min-width: 933px) {
   body {

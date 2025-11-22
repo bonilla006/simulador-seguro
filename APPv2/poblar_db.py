@@ -1,5 +1,7 @@
 from app import app
 from models import *
+from datetime import datetime, timedelta
+import random
 
 def poblar_tablas():
     with app.app_context():
@@ -72,7 +74,7 @@ def poblar_tablas():
                 codigo="48248648",
                 encendido=True,
                 estado="Bloqueado", 
-                alias="Puerta Pricipal",
+                alias="Puerta Principal",
                 bateria=89
             ),
             iot_usuario(
@@ -100,9 +102,63 @@ def poblar_tablas():
         db.session.commit()
         print(f"{len(relaciones)} relaciones creadas")
 
+        # 4. Poblar iotlogs con datos de ejemplo
+        print("Poblando tabla iotlogs...")
+        
+        # Obtener todas las relaciones iot_usuario
+        relaciones_iot = iot_usuario.query.all()
+        
+        logs = []
+        
+        # Generar logs para los últimos 30 días
+        for i in range(25):  # Crear 100 eventos de ejemplo
+            # Seleccionar una relación aleatoria
+            relacion = random.choice(relaciones_iot)
+            
+            # Fecha aleatoria en los últimos 30 días
+            dias_atras = random.randint(0, 30)
+            horas_atras = random.randint(0, 23)
+            minutos_atras = random.randint(0, 59)
+            
+            instante = datetime.now() - timedelta(
+                days=dias_atras, 
+                hours=horas_atras, 
+                minutes=minutos_atras
+            )
+            
+            # 85% de probabilidad de acceso aceptado, 15% denegado
+            acceso_tipo = "ACK" if random.random() < 0.85 else "NAK"
+            
+            log = iotlogs(
+                iot_id=relacion.id,
+                instante=instante,
+                acceso=acceso_tipo
+            )
+            
+            logs.append(log)
+        
+        # Ordenar logs por fecha (más antiguos primero para mantener coherencia)
+        logs.sort(key=lambda x: x.instante)
+        
+        for log in logs:
+            db.session.add(log)
+        
+        db.session.commit()
+        print(f"{len(logs)} logs creados")
+
+        # 5. Mostrar resumen
+        print("\n=== RESUMEN DE DATOS CREADOS ===")
         print(f"Dispositivos: {Dispositivos.query.count()}")
         print(f"Usuarios: {Usuarios.query.count()}") 
-        print(f"Relaciones: {iot_usuario.query.count()}")
+        print(f"Relaciones iot_usuario: {iot_usuario.query.count()}")
+        print(f"Logs iotlogs: {iotlogs.query.count()}")
+        
+        # Mostrar estadísticas de los logs
+        logs_aceptados = iotlogs.query.filter_by(acceso="ACK").count()
+        logs_denegados = iotlogs.query.filter_by(acceso="NAK").count()
+        
+        print(f"Logs aceptados: {logs_aceptados}")
+        print(f"Logs denegados: {logs_denegados}")
 
 if __name__ == '__main__':
     poblar_tablas()

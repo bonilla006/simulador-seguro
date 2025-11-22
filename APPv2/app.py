@@ -1,4 +1,3 @@
-import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf import FlaskForm, CSRFProtect
@@ -9,7 +8,10 @@ from wtforms.validators import InputRequired, Length, Email, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 from models import *
+from datetime import datetime
 import phonenumbers
+import json
+
 
 ###########################################################################################################
 ############################################CORE###########################################################
@@ -24,7 +26,7 @@ login_manager = LoginManager(app)
 #para formularios
 csrf = CSRFProtect(app)
 #MQTT
-asunto = "/smartlock/mqtt"
+asunto = "/smartlock/mqtt/"
 cliente_mqtt = Mqtt(app)
 # Verificar configuración MQTT cargada
 print("=== CONFIGURACIÓN MQTT ===")
@@ -256,6 +258,19 @@ def Nuevo_Dispositivo():
             return redirect(url_for('Nuevo_Dispositivo'))
             
     return render_template('nuevo_dispositivo.html', form=form)
+
+@app.route('/panel-logs/', methods=['GET'])
+def Panel_Logs():
+    return render_template('logs.html')
+
+@app.route('/panel-logs/otrolog/', methods=['GET'])
+def otrologs():
+    logs = iotlogs.query.all()
+    context = [{
+        'key':"value"
+    } for log in logs ]
+    return render_template('')
+
 ###########################################################################################################
 ############################################ENDPOINTS######################################################
 ###########################################################################################################
@@ -285,9 +300,25 @@ def manejador_conexion(client, userdata, flags, rc):
 def manejador_mensajes_mqtt(client, userdata, message):
     try:
         print(f"=== EVENTO ON_MESSAGE ===")
-        print(f" Topic: {message.topic}")
-        print(f" Payload: {message.payload.decode()}")
-        
+        # asunto_recibido = message.topic
+        payload = message.payload.decode()
+        data = json.loads(payload)
+
+        if 'acc' in data:
+            if data['acc'] == "ack":
+                print("ACK")
+                print(f"Dispositivo: {data.get('iot_id', 'N/A')}")
+                print(f"Status: {data.get('estado', 'N/A')}")
+
+            elif data['acc'] == "passw":
+                #conseguir la contraseña desde el smartlock
+                print(f"contraseña: {data.get('pssw', 'N/A')}")
+                #validar la contraseña con la de la bd
+
+                #cambiar el estado del dispositivo
+            else:
+                pass
+            
     except Exception as err:
         print(f"Error en manejador_mensajes_mqtt: {err}")
 

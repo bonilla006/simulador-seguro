@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import ChoiceType
@@ -50,6 +51,22 @@ class iot_usuario(db.Model):
 
     def __repr__(self):
         return f"{self.iot_id}::{self.usuario_id}"
+
+#modelo para almacener datos de uso del dispositivo
+ACCESO = [
+    ("ACK", "Aceptado"),
+    ("NAK", "Denegado")
+]
+class iotlogs(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    iot_id = db.Column(db.Integer, db.ForeignKey("iot_usuario.id"))
+    instante = db.Column(db.DateTime, default=datetime.now) #YYYY-MM-DD HH:MM:SS:MS
+    acceso = db.Column(ChoiceType(ACCESO))
+
+
+    iot = db.relationship('iot_usuario')
+
+    
 
 def crear_bd(app):
     db.init_app(app)
