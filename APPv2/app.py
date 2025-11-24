@@ -9,8 +9,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
 from models import *
 from datetime import datetime
+from hashlib import sha256
 import phonenumbers
 import json
+
 
 
 ###########################################################################################################
@@ -241,7 +243,7 @@ def Nuevo_Dispositivo():
                 nuevo_dispositivo = iot_usuario(
                     iot_id=d_id.id, 
                     usuario_id=u_id.id, 
-                    codigo=form.codigo.data,
+                    codigo=sha256(form.codigo.data.encode()).hexdigest(),
                     encendido=True,
                     estado="Desbloqueado", 
                     alias=form.nombre.data,
@@ -278,22 +280,25 @@ def otrologs():
 ###########################################################################################################
 ############################################MANEJADOR MQTT#################################################
 ###########################################################################################################
-#Se encarga de monitorear si hubo un problema al realizar una conexion
+#Se encarga de monitorear los asuntos a los que el servidor va a escuchar
 @cliente_mqtt.on_connect()
 def manejador_conexion(client, userdata, flags, rc):
     try:
         print(f"=== EVENTO ON_CONNECT ===")
         if rc == 0:
             print("Conexión MQTT exitosa al broker")
-            # Intentar suscribirse
-            result = cliente_mqtt.subscribe(asunto)
-            print(f"Intento de suscripción a '{asunto}': {result}")
-
+            # suscribirse al topico de inicio
+            status_inicio = cliente_mqtt.subscribe("smartlock/+/inicio")
+            # suscribirse al topico de comandos
+            status_comandos = cliente_mqtt.subscribe("smartlock/+/comando")
+            # suscribirse al topico de estados
+            status_status = cliente_mqtt.subscribe("smartlock/+/respuesta")
+            print(f"Subscripciones: [{status_inicio}], [{status_comandos}], [{status_status}]")
         else:
             print(f"Error de conexión MQTT: {rc}")
             
     except Exception as err:
-        print("Error fatal en conexión MQTT:", err)
+        print("Error al conectarse a un topico MQTT:", err)
 
 
 @cliente_mqtt.on_message()
@@ -301,26 +306,52 @@ def manejador_mensajes_mqtt(client, userdata, message):
     try:
         print(f"=== EVENTO ON_MESSAGE ===")
         # asunto_recibido = message.topic
+        print(message.topic)
+        miapp, iot_id, topico = message.topic.split("/")
         payload = message.payload.decode()
+        print("raw data:", payload)
         data = json.loads(payload)
+        if topico == "respuesta":
+            if 'acc' in data:
+                if data['acc'] == "ack":
+                    print("ACK")
+                    #conseguir el id de usuario
+                    user_id = data.get('user_id', 'N/A')
+                    if user_id != 'N/A' and iot_id:
+                        with app.app_context():
+                            try:    
+                                u_id = Usuarios.query.get(user_id)
+                                d_id = Dispositivos.query.filter_by(id_modelo=iot_id).first()
+                                relacion = iot_usuario.query.filter_by(usuario_id=u_id.id, iot_id=d_id.id).first()
+                            except Exception as err:
+                                print("Error al buscar data de usuario o dispositivo:", err)                    
 
-        if 'acc' in data:
-            if data['acc'] == "ack":
-                print("ACK")
-                print(f"Dispositivo: {data.get('iot_id', 'N/A')}")
-                print(f"Status: {data.get('estado', 'N/A')}")
+                        if relacion:
+                            #publicar el id de relacion
+                            ret_payload = {"acc":"ack","rel_id":relacion.id}
+                            cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", json.dumps(ret_payload))
+                            print(f"{ret_payload} enviado correctamente")
 
-            elif data['acc'] == "passw":
-                #conseguir la contraseña desde el smartlock
-                print(f"contraseña: {data.get('pssw', 'N/A')}")
-                #validar la contraseña con la de la bd
+                elif data['acc'] == "passw":
+                    #conseguir la contraseña desde el smartlock
+                    hashpssw = data.get('pssw', 'N/A')
 
-                #cambiar el estado del dispositivo
+                    #validar la contraseña con la de la bd
+
+                    #cambiar el estado del dispositivo
+                else:
+                    pass
             else:
                 pass
+        elif asunto == "comando":
+            pass
+        else:
+            pass
             
     except Exception as err:
         print(f"Error en manejador_mensajes_mqtt: {err}")
+        #ret_payload = f'"acc":"mssg","estado":"err","error":{err}'
+        #cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", ret_payload)
 
 @app.route('/demo-mqtt/', methods=['POST'])
 @csrf.exempt

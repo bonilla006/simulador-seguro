@@ -71,7 +71,7 @@ def poblar_tablas():
             iot_usuario(
                 iot_id=dispositivo1.id, 
                 usuario_id=usuario1.id, 
-                codigo="48248648",
+                codigo="8c34f8ce0a50e63100f1681cd5597bf037ba20fe4298d78bfc14f146ef9bca85",
                 encendido=True,
                 estado="Bloqueado", 
                 alias="Puerta Principal",
@@ -80,7 +80,7 @@ def poblar_tablas():
             iot_usuario(
                 iot_id=dispositivo2.id, 
                 usuario_id=usuario1.id, 
-                codigo="58948744", 
+                codigo="58948749", 
                 encendido=True,
                 estado="Desbloqueado",
                 alias="Patio",
