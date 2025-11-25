@@ -5,6 +5,7 @@
 // #include "mbedtls/md.h"
 // #include <WiFi.h>
 // #include <PubSubClient.h>
+// #include <ArduinoJson.h>
 // #define ServoPin 15
 
 // Servo servo;
@@ -50,6 +51,9 @@
 // const String ASUNTO_RESPUESTA = "smartlock/BFUA-6044/respuesta";
 // String REL_ID = "";
 
+// //objeto json
+// JsonDocument parser;
+
 // //objeto cliente
 // WiFiClient smartlock;
 // PubSubClient cliente(smartlock);
@@ -72,8 +76,8 @@
 //   conexionMQTT();
 
 //   //mandar mensaje de presentacion
-//   String payload = "{\"acc\":\"ack\",\"user_id\":\""+USER_ID+"\",\"estado\":\"bloqueado\"}";
-//   cliente.publish(ASUNTO_INICIO.c_str(), payload.c_str());
+//   String payload = "{\"acc\":\"serv-ack\",\"user_id\":\""+USER_ID+"\",\"estado\":\"bloqueado\"}";
+//   cliente.publish(ASUNTO_RESPUESTA.c_str(), payload.c_str());
 
 //   //conectar el mecanismo con el microprocesador
 //   servo.attach(ServoPin);
@@ -118,17 +122,9 @@
 //       hashpssw = computeSHA256(localpssw);
 //       Serial.println(hashpssw);
 //       //enviar la data hacia el servidor
-//       String payload = "{\"acc\":\"passw\",\"iot_id\":\"BFUA-6044\",\"pssw\":\"" + hashpssw + "\"}";
-//       cliente.publish(ASUNTO_MQTT, payload.c_str());
-
-//       if(password.evaluate()){
-//         servo.write(180); //simula que se abrio la cerradura
-//         isDoorLocked = false;
-//       } else {
-//         lcd.clear();
-//         displayMessage("No contraseña ", "Trate de nuevo");
-//         reset();
-//       }
+//       String payload = "{\"acc\":\"serv-val-pssw\",\"rel_id\":\" "+REL_ID+" \",\"pssw\":\"" + hashpssw + "\"}";
+//       Serial.println(payload);
+//       cliente.publish(ASUNTO_COMANDO.c_str(), payload.c_str());
 //     }
 //   }
 // }
@@ -158,40 +154,87 @@
 //     }
 //   }
 // }
+// //String payload = "{\"acc\":\"error\",\"rel_id\":\" "+REL_ID+" \",\"err\":\"el val que recibio el iot fue:"+estado_val+"\"}";
+// //cliente.publish(ASUNTO_RESPUESTA, payload.c_str());
 // void manejadorMensajesMQTT(char* topic, byte* payload, unsigned int length){
 //   String mensaje = "";
+//   //recorrer el payload para conseguir el mensaje
 //   for (int i = 0; i < length; i++) {
-//     mensaje += (char)payload[i];
+//     mensaje += (char)payload[i]; //transformar byte a char
 //   }
   
 //   Serial.print("Mensaje recibido en: ");
 //   Serial.print(topic);
 //   Serial.print(" -> ");
 //   Serial.println(mensaje);
-  
-//   // Procesar según el topic
+//   //parsear el json; aka mensaje
+//   DeserializationError err = deserializeJson(parser, mensaje.c_str());
+//   switch (err.code()) {
+//     case DeserializationError::Ok:
+//       Serial.println("Deserialisacion completada");
+//       break;
+
+//     case DeserializationError::InvalidInput:
+//       Serial.print("Input Invalido");
+//       break;
+
+//     case DeserializationError::NoMemory:
+//       Serial.println("No hay memoria");
+//       break;
+
+//     default:
+//       Serial.println("Error fatal");
+//       break;
+//   }
+//   //conseguir la accion
+//   String accion = String(parser["acc"]);
+//   // Procesar según el asunto
 //   if (String(topic) == ASUNTO_RESPUESTA) {
-//     // Extraer JSON y obtener rel_id
-//     if (mensaje.indexOf("\"acc\":\"ack\"") > 0 && mensaje.indexOf("\"rel_id\"") > 0) {
-//       // Aquí extraes el rel_id del JSON y lo guardas en REL_ID
-//       int start = mensaje.indexOf("\"rel_id\":") + 8;
-//       int end = mensaje.indexOf("}", start);
-//       REL_ID = mensaje.substring(start, end);
-//       Serial.println("REL_ID recibido: " + REL_ID);
+//     Serial.println("Procesando respuestas...");
+    
+//     //identificacion del servidor con el IoT
+//     if(accion == "iot-ack"){
+//       //conseguir el id de relacion
+//       REL_ID = String(parser["rel_id"]);
+
+//     }else if(accion == "iot-val-pssw"){
+//       //ver si fue correcta a no la contraseña ingresada
+//       String estado_val = String(parser["val"]);
+//       if(estado_val == "exito"){
+//         String payload = "{\"acc\":\"serv-dsblk\",\"rel_id\":\" "+REL_ID+" \"}";
+//         cliente.publish(ASUNTO_COMANDO.c_str(), payload.c_str());
+
+//       }else if(estado_val == "fallo"){
+//         String payload = "{\"acc\":\"serv-wrg-pssw\",\"rel_id\":\" "+REL_ID+" \"}";
+//         cliente.publish(ASUNTO_RESPUESTA.c_str(), payload.c_str());
+
+//       }else{
+//         Serial.println("else in val-pssw");
+//       }
+//     }else if(accion == "iot-dsblk"){
+//       servo.write(180); //simula que se abrio la cerradura
+//       isDoorLocked = false;
+//     }else{
+//       Serial.println("...mas respuestas");
 //     }
 //   }
 //   else if (String(topic) == ASUNTO_COMANDO) {
-//     // Procesar comandos del servidor (lock/unlock)
-//     if (mensaje.indexOf("\"comando\":\"lock\"") > 0) {
-//       servo.write(90); // Bloquear
-//       isDoorLocked = true;
-//       Serial.println("Comando LOCK recibido");
-//     }
-//     else if (mensaje.indexOf("\"comando\":\"unlock\"") > 0) {
-//       servo.write(180); // Desbloquear
-//       isDoorLocked = false;
-//       Serial.println("Comando UNLOCK recibido");
-//     }
+//     Serial.println("Procesando comandos..."); 
+//     if(accion == "iot-time-out"){
+//       //verificar si tengo intentos
+//       String intentos = String(parser["try"]);
+//       if(intentos == "si"){
+//         lcd.clear();
+//         displayMessage("No contraseña ", "30seg de bloqueo", parser["time"]);
+//         reset();
+//       }else{
+//         lcd.clear();
+//         displayMessage("No contraseña ", "5min de bloqueo", parser["time"]);
+//         reset();
+//       }
+//     }   
+//   }else{
+//     Serial.println("standby in else");
 //   }
 // }
 
@@ -225,6 +268,7 @@
 //   return hashdata;
 
 // }
+
 // /*---------------------------------------------------------------*/
 
 // /*Funciones para manejo del hardware*/
@@ -243,17 +287,18 @@
 // void reset(){
 //   password.reset();
 //   current_len_passw = 0;
+//   localpssw = "";
 //   lcd.clear();
 //   lcd.setCursor(0, 0);
 // }
 
-// void displayMessage(const char *line1, const char *line2) {
+// void displayMessage(const char *line1, const char *line2, int time) {
 //   lcd.clear();
 //   lcd.setCursor(0, 0);
 //   lcd.print(line1);
 //   lcd.setCursor(0, 1);
 //   lcd.print(line2);
-//   delay(3000);
+//   delay(time);
 //   lcd.clear();
 // }
 // /*---------------------------------------------------------------*/

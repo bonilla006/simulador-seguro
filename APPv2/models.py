@@ -42,7 +42,7 @@ class iot_usuario(db.Model):
     estado = db.Column(ChoiceType(ESTADO_OPERACIONAL))
     alias = db.Column(db.String(150))
     bateria = db.Column(db.Integer)
-
+    intentos = db.Column(db.Integer)
     usuario = db.relationship('Usuarios')
     iot = db.relationship('Dispositivos')
     __table_args__ = (

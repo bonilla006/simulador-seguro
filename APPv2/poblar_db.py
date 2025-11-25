@@ -75,16 +75,18 @@ def poblar_tablas():
                 encendido=True,
                 estado="Bloqueado", 
                 alias="Puerta Principal",
-                bateria=89
+                bateria=89,
+                intentos=0
             ),
             iot_usuario(
                 iot_id=dispositivo2.id, 
                 usuario_id=usuario1.id, 
                 codigo="58948749", 
                 encendido=True,
-                estado="Desbloqueado",
+                estado="Bloqueado",
                 alias="Patio",
-                bateria=90  
+                bateria=90,
+                intentos=0  
             ),
             iot_usuario(
                 iot_id=dispositivo1.id, 
@@ -93,7 +95,8 @@ def poblar_tablas():
                 encendido=True,
                 estado="Bloqueado", 
                 alias="Oficina de Jorge",
-                bateria=100
+                bateria=10,
+                intentos=0
             ),
         ]
         
