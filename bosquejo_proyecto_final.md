@@ -25,6 +25,7 @@
             - https://www.emqx.com/en/blog/how-to-use-mqtt-in-flask
             - https://docs.python.org/3/library/hashlib.html#hashlib.sha256
             - https://stackoverflow.com/questions/49032927/how-to-exit-mqtt-forever-loop
+            - https://iot.stackexchange.com/questions/5897/publish-mqtt-message-via-http-get
 
         - Hardware-Simulado
             - https://www.youtube.com/watch?v=ZLt_BqmmKKE&t=5s, DoorLock system

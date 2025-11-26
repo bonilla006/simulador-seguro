@@ -29,6 +29,7 @@ login_manager = LoginManager(app)
 csrf = CSRFProtect(app)
 #MQTT
 asunto = "/smartlock/mqtt/"
+IOT_ID = None
 cliente_mqtt = Mqtt(app)
 # Verificar configuración MQTT cargada
 print("=== CONFIGURACIÓN MQTT ===")
@@ -194,6 +195,10 @@ def Bloquear_Dispositivo(rel_id):
         except Exception as err:
             print("Error en Bloquear_Dispositivo:", err)
 
+        #publicar comando para bloquear dispositivo
+        ret_payload = {"acc":"iot-blk", "estado":"Bloqueado"}
+        cliente_mqtt.publish(f"smartlock/{dispositivo.iot.id_modelo}/comando", json.dumps(ret_payload))
+
         #actualizar el estado del dispositivo de desbloqueado a bloqueado
         dispositivo.estado = "Bloqueado"
         db.session.commit()
@@ -214,7 +219,10 @@ def Desbloquear_Dispositivo(rel_id):
         except Exception as err:
             print("Error en Desbloquear_Dispositivo:", err)
 
-        #actualizar el estado del dispositivo de bloqueado a desbloqueado
+        #publicar comando para desbloquear el dispositivo
+        ret_payload = {"acc":"iot-dsblk", "estado":"Desbloqueado"}
+        cliente_mqtt.publish(f"smartlock/{dispositivo.iot.id_modelo}/comando", json.dumps(ret_payload))
+
         dispositivo.estado = "Desbloqueado"
         db.session.commit()
         
@@ -245,7 +253,7 @@ def Nuevo_Dispositivo():
                     usuario_id=u_id.id, 
                     codigo=sha256(form.codigo.data.encode()).hexdigest(),
                     encendido=True,
-                    estado="Desbloqueado", 
+                    estado="Bloqueado", 
                     alias=form.nombre.data,
                     bateria=100
                 )
@@ -307,7 +315,7 @@ def manejador_mensajes_mqtt(client, userdata, message):
         print(f"=== EVENTO ON_MESSAGE ===")
         # asunto_recibido = message.topic
         print(message.topic)
-        miapp, iot_id, topico = message.topic.split("/")
+        miapp, IOT_ID, topico = message.topic.split("/")
         payload = message.payload.decode()
         print("raw data:", payload)
         data = json.loads(payload)
@@ -318,21 +326,21 @@ def manejador_mensajes_mqtt(client, userdata, message):
                     print("ACK")
                     #conseguir el id de usuario
                     user_id = data.get('user_id', 'N/A')
-                    if user_id != 'N/A' and iot_id:
+                    if user_id != 'N/A' and IOT_ID:
                         with app.app_context():
                             try:    
                                 u_id = Usuarios.query.get(user_id)
-                                d_id = Dispositivos.query.filter_by(id_modelo=iot_id).first()
+                                d_id = Dispositivos.query.filter_by(id_modelo=IOT_ID).first()
                                 relacion = iot_usuario.query.filter_by(usuario_id=u_id.id, iot_id=d_id.id).first()
                             except Exception as err:
                                 print("Error al buscar data de usuario o dispositivo:", err)                    
 
                         if relacion:
                             #publicar el id de relacion
-                            ret_payload = {"acc":"iot-ack","rel_id":relacion.id}
-                            cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", json.dumps(ret_payload))
+                            ret_payload = {"acc":"iot-ack","rel_id":relacion.id, "estado":relacion.estado.value}
+                            cliente_mqtt.publish(f"smartlock/{IOT_ID}/respuesta", json.dumps(ret_payload))
                         else:
-                            print(f"problema al buscar la relacion {iot_id}-{user_id}")
+                            print(f"problema al buscar la relacion {IOT_ID}-{user_id}")
 
                 elif data['acc'] == "serv-wrg-pssw":
                     with app.app_context():
@@ -351,13 +359,13 @@ def manejador_mensajes_mqtt(client, userdata, message):
                                 # Bloqueo corto (30 segundos)
                                 ret_payload = {"acc": "iot-time-out", "try": "si", "time": 30000}
                                 
-                            cliente_mqtt.publish(f"smartlock/{iot_id}/comando", json.dumps(ret_payload))
+                            cliente_mqtt.publish(f"smartlock/{IOT_ID}/comando", json.dumps(ret_payload))
                             
                         except Exception as err:
                             print("Error en wrg-pssw:", err)
                     
                 elif data['acc'] == "error":
-                    print(f"se recibio {data['err']} de {iot_id}")
+                    print(f"se recibio {data['err']} de {IOT_ID}")
                 else:
                     print("error=>accion no identificada:", data['acc'])
             else:
@@ -386,12 +394,13 @@ def manejador_mensajes_mqtt(client, userdata, message):
                                 
                             #publicar que la contraseña ingresada es la correcta
                             ret_payload = {"acc":"iot-val-pssw","val":"exito"}
-                            cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", json.dumps(ret_payload))
+                            cliente_mqtt.publish(f"smartlock/{IOT_ID}/respuesta", json.dumps(ret_payload))
                         else:
                             #hacer algo para contraseñas fallidas
                             ret_payload = {"acc":"iot-val-pssw","val":"fallo"}
-                            cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", json.dumps(ret_payload))
+                            cliente_mqtt.publish(f"smartlock/{IOT_ID}/respuesta", json.dumps(ret_payload))
 
+                #la accion de abrir viene desde el iot
                 elif data['acc'] == "serv-dsblk":
                     #conseguir la relacion
                     with app.app_context():
@@ -405,8 +414,8 @@ def manejador_mensajes_mqtt(client, userdata, message):
                         db.session.commit()
 
                     #mandar mensaje para que se ejecute el mecanismo de desbloqueo
-                    ret_payload = {"acc":"iot-dsblk"}
-                    cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", json.dumps(ret_payload))
+                    ret_payload = {"acc":"iot-dsblk", "estado":"Desbloqueado"}
+                    cliente_mqtt.publish(f"smartlock/{IOT_ID}/respuesta", json.dumps(ret_payload))
         else:
             pass
             

@@ -50,6 +50,7 @@
 // const String ASUNTO_COMANDO = "smartlock/BFUA-6044/comando";
 // const String ASUNTO_RESPUESTA = "smartlock/BFUA-6044/respuesta";
 // String REL_ID = "";
+// String ESTADO = "";
 
 // //objeto json
 // JsonDocument parser;
@@ -76,13 +77,12 @@
 //   conexionMQTT();
 
 //   //mandar mensaje de presentacion
-//   String payload = "{\"acc\":\"serv-ack\",\"user_id\":\""+USER_ID+"\",\"estado\":\"bloqueado\"}";
+//   String payload = "{\"acc\":\"serv-ack\",\"user_id\":\""+USER_ID+"\"}";
 //   cliente.publish(ASUNTO_RESPUESTA.c_str(), payload.c_str());
 
 //   //conectar el mecanismo con el microprocesador
 //   servo.attach(ServoPin);
-//   //pocision inicial de la palanca del sistema de bloqueo
-//   servo.write(90); 
+//   servo.write(0);
 
 //   lcd.init();
 //   lcd.backlight();
@@ -103,7 +103,21 @@
 //   }
   
 //   lcd.setCursor(0,0);
-//   isDoorLocked ? lcd.print("Contraseña:") : lcd.print("Bienvenido!");
+//   //verificar el estado
+//   if(ESTADO == "Bloqueado"){
+//     //simula cerradura cerrada
+//     servo.write(90); 
+//     lcd.print("Contraseña:");
+//   }else if(ESTADO == "Desbloqueado"){
+//     servo.write(180);
+//     lcd.print("Bienvenido!");
+//   }else{
+//     Serial.println("error con el estado:");
+//     Serial.println(ESTADO);
+//     //volver a hacer el ack con el servidor
+//     String payload = "{\"acc\":\"serv-ack\",\"user_id\":\""+USER_ID+"\"}";
+//   cliente.publish(ASUNTO_RESPUESTA.c_str(), payload.c_str());
+//   }
 
 //   //devuelve el digito que se ingreso en el keypad
 //   char digito = keypad.getKey();
@@ -196,6 +210,7 @@
 //     if(accion == "iot-ack"){
 //       //conseguir el id de relacion
 //       REL_ID = String(parser["rel_id"]);
+//       ESTADO = String(parser["estado"]);
 
 //     }else if(accion == "iot-val-pssw"){
 //       //ver si fue correcta a no la contraseña ingresada
@@ -212,15 +227,23 @@
 //         Serial.println("else in val-pssw");
 //       }
 //     }else if(accion == "iot-dsblk"){
+//       ESTADO = String(parser["estado"]); //actualizar estado
 //       servo.write(180); //simula que se abrio la cerradura
-//       isDoorLocked = false;
 //     }else{
 //       Serial.println("...mas respuestas");
 //     }
 //   }
 //   else if (String(topic) == ASUNTO_COMANDO) {
 //     Serial.println("Procesando comandos..."); 
-//     if(accion == "iot-time-out"){
+//     //la accion de abrir/cerrar viene del app
+//     if(accion == "iot-dsblk"){
+//       ESTADO = String(parser["estado"]); //actualizar estado
+//       servo.write(180); //simula que se abrio la cerradura
+//     }else if(accion == "iot-blk"){
+//       ESTADO = String(parser["estado"]); //actualizar estado
+//       servo.write(90); //simula que se cerro la cerradura
+
+//     }else if(accion == "iot-time-out"){
 //       //verificar si tengo intentos
 //       String intentos = String(parser["try"]);
 //       if(intentos == "si"){
@@ -232,7 +255,9 @@
 //         displayMessage("No contraseña ", "5min de bloqueo", parser["time"]);
 //         reset();
 //       }
-//     }   
+//     }else{
+//       Serial.println("...mas comandos");
+//     }
 //   }else{
 //     Serial.println("standby in else");
 //   }
