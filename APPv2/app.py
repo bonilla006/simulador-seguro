@@ -168,22 +168,58 @@ def Panel_Control():
     try:
         info_IoT = iot_usuario.query.filter_by(usuario_id=current_user.id).all()
     except Exception as err:
-        print("Error en Panel_Control:", err)
+        print("Error en Panel_Control(info_iot):", err)
 
     mycsrf=generate_csrf()
-
+    context = []
+    infodict = {}
     if info_IoT:
-        context = [{
-            'id':info.id,
-            'nombre':info.alias if info.alias else info.name,
-            # 'encendido':info.encendido,
-            'estado':info.estado.value,
-            'carga':info.bateria,
-        } for info in info_IoT]
-    else:
-        context= []
-        
+        for info in info_IoT:
+            #conseguir los logs del dispositivo 
+            try:
+                logs = iotlogs.query.filter_by(iot_id=info.id).order_by(iotlogs.instante.desc()).limit(5).all()
+            except Exception as err:
+                print("Error en Panel_Control(logs):", err)
+            
+            #formatear los logs
+            infologs = [{
+                'fecha':f"{log.instante.day}/{log.instante.month}/{log.instante.year}",
+                'tiempo':f"{log.instante.strftime("%I:%M %p")}",
+                'acceso':log.acceso.value,
+                'accion':log.accion.value
+            } for log in logs]
+            
+            infodict = {
+                'id':info.id,
+                'nombre':info.alias if info.alias else info.name,
+                # 'encendido':info.encendido,
+                'estado':info.estado.value,
+                'carga':info.bateria,
+                'logs':infologs
+            }
+            context.append(infodict)
+
+    print(context)
     return render_template('panel_principal.html', context=context, csrf=mycsrf)
+
+@app.route('/panel-principal/logs/<int:rel_id>/', methods=['POST'])
+@login_required
+def All_Logs(rel_id):
+    if request.method == "POST":
+        #conseguir los logs del dispositivo 
+        try:
+            logs = iotlogs.query.filter_by(iot_id=rel_id).order_by(iotlogs.instante.desc()).all()
+        except Exception as err:
+            print("Error en Logs:", err)
+
+        context = [{
+            'fecha':f"{log.instante.day}/{log.instante.month}/{log.instante.year}",
+            'tiempo':f"{log.instante.strftime("%I:%M %p")}",
+            'acceso':log.acceso.value,
+            'accion':log.accion.value
+        } for log in logs]
+
+    return render_template('logs.html', context=context)
 
 @app.route('/panel-principal/lock/<int:rel_id>/', methods=['POST'])
 @login_required
@@ -201,6 +237,11 @@ def Bloquear_Dispositivo(rel_id):
 
         #actualizar el estado del dispositivo de desbloqueado a bloqueado
         dispositivo.estado = "Bloqueado"
+        db.session.commit()
+
+        #crear log
+        nuevo_log = iotlogs(iot_id=rel_id, instante=datetime.now(), acceso="ACK", accion="BLCK")
+        db.session.add(nuevo_log)
         db.session.commit()
 
         #volver al panel principal
@@ -226,6 +267,11 @@ def Desbloquear_Dispositivo(rel_id):
         dispositivo.estado = "Desbloqueado"
         db.session.commit()
         
+        #crear log
+        nuevo_log = iotlogs(iot_id=rel_id, instante=datetime.now(), acceso="ACK", accion="DBLCK")
+        db.session.add(nuevo_log)
+        db.session.commit()
+
         #volver al panel principal
         return redirect(url_for('Panel_Control'))
     else:
@@ -269,17 +315,19 @@ def Nuevo_Dispositivo():
             
     return render_template('nuevo_dispositivo.html', form=form)
 
-@app.route('/panel-logs/', methods=['GET'])
-def Panel_Logs():
-    return render_template('logs.html')
+@app.route('/reset', methods=['GET'])
+def reset_try():
+    if request.method == "GET":
+        rel_id =  request.args['rel_id']
+        print(rel_id)
+        try:
+            dispositivo = iot_usuario.query.get(rel_id) 
+        except Exception as err:
+            print("Error en Desbloquear_Dispositivo:", err)
 
-@app.route('/panel-logs/otrolog/', methods=['GET'])
-def otrologs():
-    logs = iotlogs.query.all()
-    context = [{
-        'key':"value"
-    } for log in logs ]
-    return render_template('')
+        dispositivo.intentos = 0
+        db.session.commit()
+    return "reset echo"
 
 ###########################################################################################################
 ############################################ENDPOINTS######################################################
@@ -411,6 +459,10 @@ def manejador_mensajes_mqtt(client, userdata, message):
 
                         #cambiar el estado del dispositivo
                         relacion.estado = "Desbloqueado"
+                        db.session.commit()
+                        
+                        nuevo_log = iotlogs(iot_id=data['rel_id'], instante=datetime.now(), acceso="ACK", accion="DBLCK")
+                        db.session.add(nuevo_log)
                         db.session.commit()
 
                     #mandar mensaje para que se ejecute el mecanismo de desbloqueo

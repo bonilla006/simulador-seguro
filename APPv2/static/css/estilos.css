@@ -268,58 +268,137 @@ body{
 /*--------------------------------------------------------------------*/
 
 /*Estilos para las tarjetas que presentan los dispositivos*/
-.dispositivos{
-  background-color: #fff;
-  border-radius: 25px;
-  display: flex;
-}
-/* .dispositivos:hover{
-  border-color: #fcfcfc;
-} */
-.dispositivos ul{
-  list-style-type: none;
-  display: flex;
-  justify-content: space-around;
-}
-.dispositivos li {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    flex: 1;
-    margin-right: 50px;
+/* Variables para el acordeón */
+:root {
+  --acordeon-primary: #0066ff;
+  --acordeon-background: #fff;
+  --acordeon-border: #e5e7eb;
 }
 
-.dispositivos li:first-child {
-  justify-content: flex-start;
-  gap: 0.5rem;
+/* Estilos para el acordeón de dispositivos */
+.dispositivo-acordeon {
+  background-color: var(--acordeon-background);
+  border-radius: 25px;
+  border: 1px solid var(--acordeon-border);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Ocultar inputs del acordeón */
+.dispositivo-acordeon input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+
+/* Contenedor principal del acordeón */
+.tab {
+  position: relative;
+}
+
+/* Estilo para la etiqueta/header del acordeón */
+.tab__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+  min-height: 70px;
+}
+
+.tab__label:hover {
+  background-color: #f9fafb;
+}
+
+/* Contenido del acordeón (inicialmente oculto) */
+.tab__content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease-out;
+  background-color: #f9fafb;
+}
+
+/* Cuando el radio está seleccionado, mostrar contenido */
+.dispositivo-acordeon input[type="radio"]:checked ~ .tab__content {
+  max-height: 200px;
+  padding: 15px 20px;
+  border-top: 1px solid var(--acordeon-border);
+}
+
+/* Estilos para el contenido dentro del acordeón */
+.detalles-dispositivo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detalle-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detalle-item:last-child {
+  border-bottom: none;
+}
+
+.detalle-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.detalle-valor {
+  color: #6b7280;
+}
+
+/* Mantener tus estilos existentes pero ajustados */
+.dispositivo-contenido-superior {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.nombre-dispositivo {
   font-weight: 600;
   color: #1f2937;
   font-size: 1rem;
-}
-.dispositivos a{
-  text-decoration: none;
-  color: #1f2937;
-  width: 140px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.dispositivos li:nth-child(2) {
-    justify-content: center;
-}
-
-.dispositivos li:last-child {
-    justify-content: flex-end;
-    color: #6b7280;
-    font-size: 0.9rem;
-}
-.dispositivos button {
-  background-color: transparent;
-  border-color: transparent;
-  display: inline-flex;
+.estado-dispositivo {
+  display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.carga-dispositivo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #6b7280;
+  font-size: 0.9rem;
+  min-width: 80px;
+}
+
+/* Ajustar tus estilos existentes para dispositivos */
+.dispositivos {
+  background-color: #fff;
+  border-radius: 25px;
+  display: flex;
+  transition: all 0.3s ease;
+}
+.btn-estado {
+  background: transparent;
+  border: none;
   cursor: pointer;
-  text-decoration: none;
+  padding: 5px;
 }
 /*--------------------------------------------------------------------*/
 
@@ -327,11 +406,11 @@ body{
 /*Estilos para el menu de opciones*/
 .contenedor-opciones {
   position: fixed;
-  /* border-radius: 30px; */
+  border-radius: 30px;
   height: 60px;
   bottom: 30px;
-  left: 15px;
-  right: 15px;
+  left: 150px;
+  right: 150px;
   background-color: white;
 }
 
@@ -414,6 +493,7 @@ body{
   background-color: #fff;
   border-radius: 25px;
   display: flex;
+  flex-direction: column;
   margin-top: 25%;
   padding: 15px;
 }

@@ -57,12 +57,16 @@ ACCESO = [
     ("ACK", "Aceptado"),
     ("NAK", "Denegado")
 ]
+ACCION= [
+    ("BLCK", "Bloquear"),
+    ("DBLCK", "Desbloquear")
+]
 class iotlogs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     iot_id = db.Column(db.Integer, db.ForeignKey("iot_usuario.id"))
     instante = db.Column(db.DateTime, default=datetime.now) #YYYY-MM-DD HH:MM:SS:MS
     acceso = db.Column(ChoiceType(ACCESO))
-
+    accion = db.Column(ChoiceType(ACCION))
 
     iot = db.relationship('iot_usuario')
 

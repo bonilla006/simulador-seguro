@@ -131,11 +131,13 @@ def poblar_tablas():
             
             # 85% de probabilidad de acceso aceptado, 15% denegado
             acceso_tipo = "ACK" if random.random() < 0.85 else "NAK"
+            accion_tipo = "BLCK" if random.random() < 0.5 else "DBLCK"
             
             log = iotlogs(
                 iot_id=relacion.id,
                 instante=instante,
-                acceso=acceso_tipo
+                acceso=acceso_tipo,
+                accion=accion_tipo
             )
             
             logs.append(log)

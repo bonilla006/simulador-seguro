@@ -26,6 +26,8 @@
             - https://docs.python.org/3/library/hashlib.html#hashlib.sha256
             - https://stackoverflow.com/questions/49032927/how-to-exit-mqtt-forever-loop
             - https://iot.stackexchange.com/questions/5897/publish-mqtt-message-via-http-get
+            - https://codepen.io/raubaca/pen/PZzpVe
+            - https://stackoverflow.com/questions/13855111/how-can-i-convert-24-hour-time-to-12-hour-time
 
         - Hardware-Simulado
             - https://www.youtube.com/watch?v=ZLt_BqmmKKE&t=5s, DoorLock system

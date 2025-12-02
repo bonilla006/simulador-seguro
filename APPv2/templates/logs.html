@@ -3,13 +3,17 @@
 {% block content %}    
     <div class="contenedor-contenido">
         <div class="opciones-logs">
-            Acceso
-        </div>
-        <div class="opciones-logs">
-            Uso
-        </div>
-        <div class="opciones-logs">
-            Riesgos
+
+            <h3>
+                Historial de Acceso:
+            </h3>
+            <div style="padding: 20px 15px;">
+                {% if context %}
+                    {% for log in context %}
+                        {{log.fecha}}::{{log.tiempo}}::{{log.accion}}::{{log.acceso}}<br><br>
+                    {% endfor %}
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -18,12 +22,6 @@
             <ul>
                 <li>
                     <a href="{{ url_for('Panel_Control') }}"><img class="icon" src="{{ url_for('static', filename='image/icons8-cloud-sharing-66.png') }}" alt="Mis Dispositivos"></a>
-                </li>
-                <li>
-                    <a href="#"><img class="icon" src="{{ url_for('static', filename='image/icons8-report-50.png') }}"></a>
-                </li>
-                <li>
-                    <a><img class="icon" src="{{ url_for('static', filename='image/icons8-setting-50.png') }}"></a>
                 </li>
             </ul>
         </div>
