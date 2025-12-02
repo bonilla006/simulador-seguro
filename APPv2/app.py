@@ -218,7 +218,7 @@ def Panel_Control():
             }
             context.append(infodict)
 
-    print(context)
+    # print(context)
     return render_template('panel_principal.html', context=context, csrf=mycsrf)
 
 @app.route('/panel-principal/logs/<int:rel_id>/', methods=['POST'])
@@ -227,10 +227,12 @@ def All_Logs(rel_id):
     if request.method == "POST":
         #conseguir los logs del dispositivo 
         try:
-            logs = iotlogs.query.filter_by(iot_id=rel_id).order_by(iotlogs.instante.desc()).all()
+            iot = iot_usuario.query.filter_by(id=rel_id, usuario_id=current_user.id).one()
+            logs = iotlogs.query.filter_by(iot_id=iot.id).order_by(iotlogs.instante.desc()).all()
         except Exception as err:
             print("Error en Logs:", err)
-
+            return redirect(url_for('Panel_Control'))
+        
         context = [{
             'fecha':f"{log.instante.day}/{log.instante.month}/{log.instante.year}",
             'tiempo':f"{log.instante.strftime("%I:%M %p")}",
@@ -246,10 +248,11 @@ def Bloquear_Dispositivo(rel_id):
     if request.method == "POST":
         #conseguir el id del record iot-usuario
         try:
-            dispositivo = iot_usuario.query.get(rel_id) 
+            dispositivo = iot_usuario.query.filter_by(id=rel_id, usuario_id=current_user.id).one()
         except Exception as err:
             print("Error en Bloquear_Dispositivo:", err)
-
+            return redirect(url_for('Panel_Control'))
+        
         #publicar comando para bloquear dispositivo
         ret_payload = {"acc":"iot-blk", "estado":"Bloqueado"}
         cliente_mqtt.publish(f"smartlock/{dispositivo.iot.id_modelo}/comando", json.dumps(ret_payload))
@@ -275,10 +278,11 @@ def Desbloquear_Dispositivo(rel_id):
     if request.method == "POST":
         #conseguir el id del record iot-usuario
         try:
-            dispositivo = iot_usuario.query.get(rel_id) 
+            dispositivo = iot_usuario.query.filter_by(id=rel_id, usuario_id=current_user.id).one()
         except Exception as err:
             print("Error en Desbloquear_Dispositivo:", err)
-
+            return redirect(url_for('Panel_Control'))
+        
         #publicar comando para desbloquear el dispositivo
         ret_payload = {"acc":"iot-dsblk", "estado":"Desbloqueado"}
         cliente_mqtt.publish(f"smartlock/{dispositivo.iot.id_modelo}/comando", json.dumps(ret_payload))
@@ -418,6 +422,10 @@ def manejador_mensajes_mqtt(client, userdata, message):
                                 
                             relacion.intentos += 1
                             db.session.commit()
+
+                            nuevo_log = iotlogs(iot_id=data['rel_id'], instante=datetime.now(), acceso="NAK", accion="DBLCK")
+                            db.session.add(nuevo_log)
+                            db.session.commit()
                             
                             if relacion.intentos >= 5:
                                 # Bloqueo largo (5 minutos)
@@ -495,12 +503,12 @@ def manejador_mensajes_mqtt(client, userdata, message):
         #ret_payload = f'"acc":"mssg","estado":"err","error":{err}'
         #cliente_mqtt.publish(f"smartlock/{iot_id}/respuesta", ret_payload)
 
-@app.route('/demo-mqtt/', methods=['POST'])
-@csrf.exempt
-def Demo_Mqtt():
-    request_data = request.get_json()
-    publish_result = cliente_mqtt.publish(request_data['topic'], request_data['msg'])
-    return jsonify({'code': publish_result[0]})
+# @app.route('/demo-mqtt/', methods=['POST'])
+# @csrf.exempt
+# def Demo_Mqtt():
+#     request_data = request.get_json()
+#     publish_result = cliente_mqtt.publish(request_data['topic'], request_data['msg'])
+#     return jsonify({'code': publish_result[0]})
 
 
 ###########################################################################################################
