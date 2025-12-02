@@ -12,7 +12,7 @@ from datetime import datetime
 from hashlib import sha256
 import phonenumbers
 import json
-
+import re
 
 
 ###########################################################################################################
@@ -63,6 +63,25 @@ class CrearUsuario(FlaskForm):
                 raise ValueError()
         except (phonenumbers.phonenumberutil.NumberParseException, ValueError):
             raise ValidationError('Numero de telefono invalido')
+
+    def validate_passw(self, passw):
+        instancia_pssw = passw.data
+
+        if len(instancia_pssw) < 8:
+            raise ValidationError("Mínimo 8 caracteres")
+    
+        if not re.search(r'[A-Z]', instancia_pssw):
+            raise ValidationError("Debe tener al menos una mayúscula")
+        
+        if not re.search(r'[a-z]', instancia_pssw):
+            raise ValidationError("Debe tener al menos una minúscula")
+        
+        if not re.search(r'\d', instancia_pssw):
+            raise ValidationError("Debe tener al menos un número")
+        
+        if not re.search(r'[@$!%*?&]', instancia_pssw):
+            raise ValidationError("Debe tener al menos un carácter(@$!%*?&)")
+
                   
 class NuevoDispositivo(FlaskForm):
     id_modelo = StringField(label="Modelo")

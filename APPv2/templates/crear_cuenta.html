@@ -45,9 +45,18 @@
                 </div>
                 <input type="tel" id="fancy_telefono" placeholder="teléfono" class="input-simple">
             </div>
-            
-            {{ form.passw(class_="input", placeholder="contraseña") }}
+            <div class="campo-grupo">
+                {{ form.passw(class_="input", placeholder="contraseña") }}
+                {% if form.passw.errors %}
+                    <div class="errores">
+                        {% for error in form.passw.errors %}
+                            <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
         </div>
+        
         <button type="submit">crear cuenta</button>
     </form>
 </div>
