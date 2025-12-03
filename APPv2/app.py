@@ -69,6 +69,9 @@ class CrearUsuario(FlaskForm):
 
         if len(instancia_pssw) < 8:
             raise ValidationError("Mínimo 8 caracteres")
+        
+        if len(instancia_pssw) > 129:
+            raise ValidationError("Maximo 128 caracteres")
     
         if not re.search(r'[A-Z]', instancia_pssw):
             raise ValidationError("Debe tener al menos una mayúscula")

@@ -9,6 +9,8 @@ SmartLock es una simulacion de una aplicación web desarrollada con Flask que pe
     - en el caso de que no tenga un ambiente virtual: python -m venv api
 - luego dentro del ambiente virtual: pip install -r requirements.txt
 - corra la aplicacion flask: flask --app app.py --debug run
+- para ver data defaulf:
+    - poble la bd: python poblar_db.py
 - corra la simulacion del iot en wokwi
     - entre al siguiente enlace en la web: https://wokwi.com/projects/448097982230388737
     - debe darle al boton verde en la esquina donde esta el dispositivo simulado
