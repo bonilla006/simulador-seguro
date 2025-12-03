@@ -233,12 +233,14 @@ def All_Logs(rel_id):
             print("Error en Logs:", err)
             return redirect(url_for('Panel_Control'))
         
-        context = [{
-            'fecha':f"{log.instante.day}/{log.instante.month}/{log.instante.year}",
-            'tiempo':f"{log.instante.strftime("%I:%M %p")}",
-            'acceso':log.acceso.value,
-            'accion':log.accion.value
-        } for log in logs]
+        context = []
+        if logs:
+            context = [{
+                'fecha':f"{log.instante.day}/{log.instante.month}/{log.instante.year}",
+                'tiempo':f"{log.instante.strftime("%I:%M %p")}",
+                'acceso':log.acceso.value,
+                'accion':log.accion.value
+            } for log in logs]
 
     return render_template('logs.html', context=context)
 
@@ -302,6 +304,7 @@ def Desbloquear_Dispositivo(rel_id):
         return redirect(url_for('Panel_Control'))
 
 @app.route('/panel-principal/nuevo-dispositivo/', methods=['GET', 'POST'])
+@login_required
 def Nuevo_Dispositivo():
     form = NuevoDispositivo()
 
@@ -338,19 +341,19 @@ def Nuevo_Dispositivo():
             
     return render_template('nuevo_dispositivo.html', form=form)
 
-@app.route('/reset', methods=['GET'])
-def reset_try():
-    if request.method == "GET":
-        rel_id =  request.args['rel_id']
-        print(rel_id)
-        try:
-            dispositivo = iot_usuario.query.get(rel_id) 
-        except Exception as err:
-            print("Error en Desbloquear_Dispositivo:", err)
+# @app.route('/reset', methods=['GET'])
+# def reset_try():
+#     if request.method == "GET":
+#         rel_id =  request.args['rel_id']
+#         print(rel_id)
+#         try:
+#             dispositivo = iot_usuario.query.get(rel_id) 
+#         except Exception as err:
+#             print("Error en Desbloquear_Dispositivo:", err)
 
-        dispositivo.intentos = 0
-        db.session.commit()
-    return "reset echo"
+#         dispositivo.intentos = 0
+#         db.session.commit()
+#     return "reset echo"
 
 ###########################################################################################################
 ############################################ENDPOINTS######################################################
