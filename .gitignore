@@ -11,3 +11,5 @@ __pycache__
 .env
 #ignorar cosas de DB
 app.db
+#ignorar version insegura
+APPv2_inseguro
